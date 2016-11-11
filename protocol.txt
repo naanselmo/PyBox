@@ -1,0 +1,79 @@
+-------
+Pacotes
+-------
+
+-> login 
+	-> username
+	-> directoryName
+	-> filesInClient array(name, path, last modified)
+
+-> fileChanged
+	-> file (name, path, last modified)
+
+-> requestFile
+	-> file (name, path)
+
+-> sendFile
+	-> file (name, path, content, last modified)
+
+---------
+Mensagens
+---------
+
+-> Header: 
+	1 byte para tipo de pacote, 4 bytes para tamanho do corpo. 5 bytes total.
+-> Corpo: 
+	-> Se login packet: 
+		-> 1 byte para especificar o tamanho do nome do utilizador. (maximo de caracteres - 256)
+		-> 1 byte para especificar o tamanho do nome da diretoria que o utilizador esta a sincronizar. (maximo de caracteres - 256)
+		-> 4 bytes para especificar quantos ficheiros estao no cliente. (maximo de ficheiros - 4294967296)
+		-> Nome do utilizador
+		-> Lista de com o seguinte formato:
+			-> 1 byte para especificar o tamanho do nome do ficheiro. (maximo de caracteres - 256)
+			-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
+			-> Timestamp da ultima data de modificacao (tamanho fixo - Nao sei quantos bytes)
+			-> Nome do ficheiro
+			-> Path relativo do ficheiro
+
+	-> Se fileChanged packet:
+		-> 1 byte para especificar o tamanho do nome do ficheiro. (maximo de caracteres - 256)
+		-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
+		-> Timestamp da ultima data de modificacao (tamanho fixo - Nao sei quantos bytes)	
+		-> Nome do ficheiro
+		-> Path relativo do ficheiro
+
+	-> Se requestFile packet:
+		-> 1 byte para especificar o tamanho do nome do ficheiro. (maximo de caracteres - 256)
+		-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
+		-> Nome do ficheiro
+		-> Path relativo do ficheiro
+
+	-> Se sendFile packet:
+		-> 1 byte para especificar o tamanho do nome do ficheiro. (maximo de caracteres - 256)
+		-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
+		-> 4 bytes para especificar o tamanho do conteudo do ficheiro (maximo de tamanho - 4GB)
+		-> Timestamp da ultima data de modificacao (tamanho fixo - Nao sei quantos bytes)	
+		-> Nome do ficheiro
+		-> Path relativo do ficheiro
+		-> Conteudo do ficheiro
+
+-------------
+Funcionamento
+-------------
+
+-> Inicial
+	-> Client liga ao servidor, mandando um pacote de login, onde especifica o seu username e todos os ficheiros que tem.
+
+	-> Servidor compara os ficheiros do cliente com os que tem. Se não tiver os ficheiros que o cliente tem, então faz um 
+	requestFile ao cliente, especificando qual o ficheiro que não tem. O cliente por sua vez, recebe o request e envia o
+	ficheiro usando o pacote sendFile.
+	Se o cliente não tem ficheiros que o servidor tem, o servidor manda o ficheiro atravês do pacote sendFile.
+
+-> Resto do programa
+	-> Cliente verifica sempre changes localmente (data de modificacao). Quando detetada uma change o cliente manda um pacote
+	fileChanged, com a informação do ficheiro mudado. O servidor ao receber o pacote, verifica se tem ou não a ultima versão.
+	Se não tiver, pede o ficheiro ao cliente atravês do pacode requestFile. Se tem a ultima versão ignora o pacote.
+
+	-> Caso seja necessario implementar multiplos clientes com o mesmo servidor, basta fazer com que o servidor quando recebe um ficheiro,
+	manda o mesmo para todas as sockets que teem esse mesmo utilizador ligado (necessario manter um map de username->sockets),
+	excepto ao que enviou.
