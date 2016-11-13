@@ -21,13 +21,14 @@ Mensagens
 ---------
 
 -> Header: 
-	1 byte para tipo de pacote, 4 bytes para tamanho do corpo. 5 bytes total.
+	1 byte para tipo de pacote.
 -> Corpo: 
-	-> Se login packet: 
+	-> Se login packet: (0)
 		-> 1 byte para especificar o tamanho do nome do utilizador. (maximo de caracteres - 256)
 		-> 1 byte para especificar o tamanho do nome da diretoria que o utilizador esta a sincronizar. (maximo de caracteres - 256)
 		-> 4 bytes para especificar quantos ficheiros estao no cliente. (maximo de ficheiros - 4294967296)
 		-> Nome do utilizador
+		-> Nome da diretoria
 		-> Lista de com o seguinte formato:
 			-> 1 byte para especificar o tamanho do nome do ficheiro. (maximo de caracteres - 256)
 			-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
