@@ -9,7 +9,7 @@ class File(object):
     def __init__(self, path=None):
         super(File, self).__init__()
         if path is not None:
-            self.file = open(path, 'w+b')
+            self.file = open(os.path.normpath(path), 'w+b')
         else:
             temp = tempfile.mkstemp()
             os.close(temp[0])
@@ -18,6 +18,10 @@ class File(object):
     def get_path(self):
         '''Returns the file's path'''
         return self.file.name
+
+    def get_relpath(self):
+        '''Returns the file's relative path'''
+        return os.path.relpath(self.get_path())
 
     def get_timestamp(self):
         '''Returns the modified timestamp'''
@@ -41,6 +45,10 @@ class File(object):
     def get_position(self):
         '''Gets the current seek position'''
         return self.file.tell()
+
+    def get_size(self):
+        '''Gets the size'''
+        return int(os.stat(self.get_path()).st_size)
 
     def write(self, data):
         '''Writes data to file'''
@@ -73,7 +81,7 @@ class Directory(object):
     def __init__(self, path=None):
         super(Directory, self).__init__()
         if path is not None:
-            self.directory = path
+            self.directory = os.path.normpath(path)
         else:
             self.directory = tempfile.mkdtemp()
 
@@ -87,6 +95,7 @@ class Directory(object):
 
     def move(self, destination):
         '''Moves the directory to the given path'''
+        destination = os.path.normpath(destination)
         os.makedirs(os.path.split(destination)[0])
         shutil.move(self.get_path(), destination)
         self.directory = destination

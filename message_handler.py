@@ -4,6 +4,7 @@ import Queue
 import threading
 import os
 from files import File, Directory
+import packets
 
 class MessageHandler(object):
     """Handles all the core functions for PyBox"""
@@ -38,31 +39,40 @@ class MessageHandler(object):
         '''Processes the next message in queue. If no message is in queue,
         it awaits until one is and then processes it'''
 
-        # TODO: Create login
-        def login(user, directory, obj_list):
-            '''Receives a user, directory, files/directories the sender has
-            and compares with what the receiver has, passing the
-            result as either requestFile or sendFile to the ObjectSocket'''
+        def do_login(user, directory):
+            '''Creates a login packet and sends it to the ObjectSocket'''
+            # TODO: Populate obj_list with FileInfo for each object
+            obj_list = []
+            login_packet = packets.LoginPacket(user, directory, obj_list)
+            # TODO: Do something with the created packet
+
+        def receive_login(login_packet):
+            '''Receives a login packet and processes it, creating send_object
+            and request_object packets as needed to synchronize'''
+            # TODO: Handle a new login, sending or requesting new files as needed
             pass
 
-        def receive_object(file_object, path, timestamp):
-            '''Receives a file or directory object, its destination,
-            and desired timestamp'''
-            file_object.set_timestamp(timestamp)
-            file_object.move(path)
-
-        # TODO: Finish core for send_object
         def send_object(path):
-            '''Creates file/directory object and passes it to the ObjectSocket'''
+            '''Creates a send object packet and sends it to the ObjectSocket'''
             if os.path.isdir(path):
                 obj = Directory(path)
             else:
                 obj = File(path)
+            info = packets.FileInfo(path=path, file_wrapper=obj)
+            send_file_packet = packets.SendFilePacket(info)
+            # TODO: Do something with the created packet
 
-        # TODO: Finish core for send_object
+        def receive_object(send_file_packet):
+            '''Receives a send file packet, and processes it'''
+            info = send_file_packet.file_info
+            info.file_wrapper.set_timestamp(info.last_modified)
+            info.file_wrapper.move(info.path)
+
         def request_object(path):
-            '''Requests the file/directory object'''
-            pass
+            '''Creates a request file packet and sends it to the ObjectSocket'''
+            info = packets.FileInfo(path=path)
+            request_file_packet = packets.RequestFilePacket(info)
+            # TODO: Do something with the created packet
 
         # TODO: Create logic for message processing
         while True:
