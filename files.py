@@ -135,7 +135,7 @@ class Directory(object):
                 yield File(abs_path)
 
 def get_wrapper(path):
-    '''Returns the correct wrapper for the given path'''
+    """Returns the correct wrapper for the given path"""
     if os.path.exists(path):
         if os.path.isdir(path):
             return Directory(path)
