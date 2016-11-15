@@ -1,3 +1,28 @@
+def boolean_to_bytes(boolean):
+    """
+    Transforms a character into a byte array of 1 byte
+    @param boolean: The boolean to be converted
+    @type boolean: bool
+    @return: A byte array with a length of 1
+    @rtype: bytearray
+    """
+    value = 1 if boolean else 0
+    return char_to_bytes(value)
+
+
+def bytes_to_boolean(byte_array, offset=0):
+    """
+    Reads a boolean from a byte array starting from the offset position.
+    @param byte_array: The byte array that contains the boolean
+    @type byte_array: bytearray
+    @param offset: The start offset
+    @type offset: int
+    @return: The boolean read
+    @rtype: bool
+    """
+    return bytes_to_char(byte_array, offset) == 1
+
+
 def char_to_bytes(character):
     """
     Transforms a character into a byte array of 1 byte
@@ -12,7 +37,7 @@ def char_to_bytes(character):
 def bytes_to_char(byte_array, offset=0):
     """
     Reads a character from a byte array starting from the offset position.
-    @param byte_array: The byte array that contains the integer
+    @param byte_array: The byte array that contains the character
     @type byte_array: bytearray
     @param offset: The start offset
     @type offset: int

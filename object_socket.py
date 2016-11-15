@@ -46,10 +46,12 @@ class ObjectSocket:
         @param packet: The packet to be sent.
         @type packet: LoginPacket or FileChangedPacket or RequestFilePacket or SendFilePacket
         """
-        message = bytearray()
-        message.extend(char_to_bytes(packet.ID))
-        message.extend(packet.encode())
-        self.socket.send(message)
+        # Send the header
+        header = bytearray()
+        header.extend(char_to_bytes(packet.ID))
+        self.socket.send(header)
+        # The packets will send the body at their own pace
+        packet.send(self.socket)
 
     def close(self):
         """

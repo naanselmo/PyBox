@@ -31,12 +31,13 @@ Mensagens
 		-> Nome da diretoria
 		-> Lista de com o seguinte formato:
 			-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
-			-> 4 bytes para Timestamp da ultima data de modificacao
+			-> 1 byte para especificar se é directory ou file
+            -> 4 bytes para Timestamp da ultima data de modificacao
 			-> Path relativo do ficheiro
 
 	-> Se fileChanged packet: (1)
 		-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
-		-> 4 bytes para Timestamp da ultima data de modificacao
+		-> 1 byte para especificar se é directory ou file
 		-> Path relativo do ficheiro
 
 	-> Se requestFile packet: (2)
@@ -45,10 +46,12 @@ Mensagens
 
 	-> Se sendFile packet: (3)
 		-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
-		-> 4 bytes para especificar o tamanho do conteudo do ficheiro (maximo de tamanho - 4GB)
-		-> 4 bytes para Timestamp da ultima data de modificacao
+		-> 1 byte para especificar se é directory ou file
+        -> 4 bytes para Timestamp da ultima data de modificacao
+		Se for file:
+		    -> 4 bytes para especificar o tamanho do conteudo do ficheiro (maximo de tamanho - 4GB)
 		-> Path relativo do ficheiro
-		-> Conteudo do ficheiro
+		    -> Conteudo do ficheiro
 
 -------------
 Funcionamento
