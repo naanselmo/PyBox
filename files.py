@@ -9,7 +9,7 @@ class File(object):
     def __init__(self, path=None):
         super(File, self).__init__()
         if path is not None:
-            self.file = open(os.path.normpath(path), 'w+b')
+            self.file = open(os.path.normpath(path), 'rb')
         else:
             temp = tempfile.mkstemp()
             os.close(temp[0])
@@ -19,9 +19,12 @@ class File(object):
         '''Returns the file's path'''
         return self.file.name
 
-    def get_relpath(self):
-        '''Returns the file's relative path'''
-        return os.path.relpath(self.get_path())
+
+    def get_relpath(self, path=None):
+        '''Returns the file's path relative to another one'''
+        if path is None:
+            path = os.curdir
+        return os.path.relpath(self.get_path(), path)
 
     def get_timestamp(self):
         '''Returns the modified timestamp'''
@@ -88,6 +91,12 @@ class Directory(object):
     def get_path(self):
         '''Returns the directory's path'''
         return self.directory
+
+    def get_relpath(self, path=None):
+        '''Returns the directory's path relative to another one'''
+        if path is None:
+            path = os.curdir
+        return os.path.relpath(self.get_path(), path)
 
     def get_timestamp(self):
         '''Returns the modified timestamp'''
