@@ -216,7 +216,7 @@ class SendFilePacket:
         if not file_is_directory:
             chunk_size = min(SendFilePacket.CHUNK_SIZE, file_size)
             remaining = file_size
-            file_wcrapper = File()
+            file_wrapper = File()
             while remaining > 0:
                 print 'Chunk size:', chunk_size
                 chunk = bytearray(chunk_size)
