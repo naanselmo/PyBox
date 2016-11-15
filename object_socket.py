@@ -1,4 +1,4 @@
-from packets import *
+from packets import LoginPacket, RequestFilePacket, SendFilePacket, LogoutPacket
 
 
 class ObjectSocket:
