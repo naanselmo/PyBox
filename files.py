@@ -57,6 +57,10 @@ class File(object):
         '''Writes data to file'''
         self.file.write(data)
 
+    def flush(self):
+        '''Forcefully flushes pending data to file'''
+        self.file.flush()
+
     def read(self, count):
         '''Reads data from the file'''
         return self.file.read(count)
