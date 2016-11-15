@@ -230,6 +230,21 @@ class SendFilePacket:
         packet = SendFilePacket(FileInfo(file_path, file_is_directory, file_last_modified, file_size, file_wrapper))
         return packet
 
+
+class LogoutPacket:
+    ID = 4
+
+    def __init__(self):
+        pass
+
+    def send(self, socket):
+        pass
+
+    @staticmethod
+    def decode(socket):
+        print 'Decode logout packet.'
+        return LogoutPacket()
+
 # class FileChangedPacket:
 #     ID = 100
 #

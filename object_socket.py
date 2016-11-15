@@ -8,7 +8,7 @@ class ObjectSocket:
     """
 
     # All the classes that the object socket knows how to receive.
-    PACKET_CLASSES = [LoginPacket, RequestFilePacket, SendFilePacket]
+    PACKET_CLASSES = [LoginPacket, RequestFilePacket, SendFilePacket, LogoutPacket]
 
     def __init__(self, socket):
         """
