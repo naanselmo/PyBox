@@ -1,4 +1,5 @@
 from packets import LoginPacket, RequestFilePacket, SendFilePacket, LogoutPacket
+from byte_utils import char_to_bytes, bytes_to_char
 
 
 class ObjectSocket:

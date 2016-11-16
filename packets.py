@@ -234,16 +234,27 @@ class SendFilePacket:
 class LogoutPacket:
     ID = 4
 
-    def __init__(self):
-        pass
+    def __init__(self, is_reply=False):
+        """
+        Creates a logout packet.
+        @param is_reply: The boolean specifying if it is a reply.
+        @type is_reply: boolean
+        """
+        self.is_reply = is_reply
 
     def send(self, socket):
-        pass
+        body = bytearray()
+        body.extend(byte_utils.boolean_to_bytes(self.is_reply))
+        socket.send(body)
 
     @staticmethod
     def decode(socket):
         print 'Decode logout packet.'
-        return LogoutPacket()
+        fixed = bytearray(1)
+        socket.recv_into(fixed)
+        is_reply = byte_utils.bytes_to_boolean(fixed, 0)
+        print 'Is reply:', is_reply
+        return LogoutPacket(is_reply)
 
 # class FileChangedPacket:
 #     ID = 100
