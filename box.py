@@ -1,36 +1,29 @@
 '''Handles client-server interaction from the client side'''
 
-import message_handler
-import packets
-import object_socket
+from object_socket import ObjectSocket
+from message_handler import MessageHandler
 import socket
 import sys
 
-# TODO: Write client main
-# Receive input, create socket to given hostname & port
-# Create ObjectSocket, and give it that socket
-# Create MessageHandler, give it that ObjectSocket
-# With the created MessageHandler, login with user/directory
-# Then, start processing by calling "process"
 def main():
     '''Starts execution once everything is loaded'''
     hostname = sys.argv[1]
     port = sys.argv[2]
     username = sys.argv[3]
     directory = sys.argv[4]
-	
-	clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     try:
-    	clientSocket.connect((hostname,port))
-	except Exception as e: 
-	    print("Desculpe mas o serviço de caixote não está disponível de momento")
-	finally:
-	    clientSocket.close()
+        client_socket.connect((hostname, port))
+    except Exception as _:
+        print "PyBox is currently unavailable"
+        client_socket.close()
+        return
 
-	objectSocket = object_socket.ObjectSocket(clientSocket)
-	messageHandler = message_handler.MessageHandler(objectSocket)
-	messageHandler.do_login(username,directory)
-	messageHandler.process()
-    
+    object_socket = ObjectSocket(client_socket)
+    message_handler = MessageHandler(object_socket)
+    message_handler.do_login(username, directory)
+    message_handler.process()
+
 main()
