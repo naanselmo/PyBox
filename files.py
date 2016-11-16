@@ -27,10 +27,6 @@ class File(object):
             path = os.curdir
         return os.path.relpath(self.get_path(), path)
 
-    def get_timestamp(self):
-        """Returns the modified timestamp"""
-        return int(os.stat(self.get_path()).st_mtime)
-
     def move(self, destination):
         """Moves the file to the given path"""
         destination = os.path.normpath(destination)
@@ -40,9 +36,16 @@ class File(object):
                 os.rmdir(destination)
             else:
                 os.remove(destination)
-        os.makedirs(os.path.split(destination)[0])
+        try:
+            os.makedirs(os.path.split(destination)[0])
+        except Exception as e:
+            pass
         shutil.move(self.get_path(), destination)
         self.file = open(destination)
+
+    def get_timestamp(self):
+        """Returns the modified timestamp"""
+        return int(os.stat(self.get_path()).st_mtime)
 
     def set_timestamp(self, timestamp):
         """Sets the modified and accessed timestamp to the given one"""
@@ -111,10 +114,6 @@ class Directory(object):
             path = os.curdir
         return os.path.relpath(self.get_path(), path)
 
-    def get_timestamp(self):
-        """Returns the modified timestamp"""
-        return int(os.stat(self.get_path()).st_mtime)
-
     def move(self, destination):
         """Moves the directory to the given path"""
         destination = os.path.normpath(destination)
@@ -124,9 +123,17 @@ class Directory(object):
                 return
             else:
                 os.remove(destination)
-        os.makedirs(os.path.split(destination)[0])
+
+        try:
+            os.makedirs(os.path.split(destination)[0])
+        except Exception as e:
+            pass
         shutil.move(self.get_path(), destination)
         self.directory = destination
+
+    def get_timestamp(self):
+        """Returns the modified timestamp"""
+        return int(os.stat(self.get_path()).st_mtime)
 
     def set_timestamp(self, timestamp):
         """Sets the modified and accessed timestamp to the given one"""

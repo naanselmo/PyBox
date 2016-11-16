@@ -13,7 +13,7 @@ class MessageHandler(object):
         self.object_socket = object_socket
         self.directory = None
         if thread:
-            thread = threading.Thread(target=MessageHandler.process, args=())
+            thread = threading.Thread(target=MessageHandler.process, args=(self,))
             thread.daemon = True
             thread.start()
 
@@ -21,10 +21,10 @@ class MessageHandler(object):
         """Creates a login packet and sends it to the ObjectSocket"""
         self.directory = Directory(directory)
         obj_list = []
-        for file_iterator in self.directory.list():
+        for file_iterator in self.directory.list(True):
             obj_list.append(packets.FileInfo(\
                 path=file_iterator.get_relpath(self.directory.get_path()),\
-                file_wrapper=packets.FileInfo(file_iterator)))
+                file_wrapper=file_iterator))
         login_packet = packets.LoginPacket(user, os.path.split(directory)[1], obj_list)
         self.object_socket.send_object(login_packet)
 
@@ -36,31 +36,58 @@ class MessageHandler(object):
             """Receives a login packet and processes it, creating send_object
             and request_object packets as needed to synchronize"""
 
-            def request_object(path):
+            def request_object(info):
                 """Creates a request file packet and sends it to the ObjectSocket"""
-                info = packets.FileInfo(path=path)
                 request_file_packet = packets.RequestFilePacket(info)
                 self.object_socket.send_object(request_file_packet)
 
-            def send_object(path):
+            def send_object(info):
                 """Creates a send object packet and sends it to the ObjectSocket"""
-                abs_path = os.path.join(self.directory.get_path(), path)
-                obj = get_wrapper(abs_path)
-                info = packets.FileInfo(path=path, file_wrapper=obj)
                 send_file_packet = packets.SendFilePacket(info)
                 self.object_socket.send_object(send_file_packet)
 
             self.directory = Directory(login_packet.username + "-" + login_packet.directory_name)
-            for info in login_packet.files:
-                path = os.path.join(self.directory.get_path(), info.path)
-                obj = get_wrapper(path)
-                if obj is not None:
-                    if info.last_modified > obj.get_timestamp():
-                        request_object(info.path)
-                    elif info.last_modified < obj.get_timestamp():
-                        send_object(info.path)
-                else:
-                    request_object(info.path)
+
+            local_files = []
+            for file_iterator in self.directory.list(True):
+                local_files.append(packets.FileInfo(\
+                    path=file_iterator.get_relpath(self.directory.get_path()),\
+                    file_wrapper=file_iterator))
+
+            request_files = []
+            send_files = []
+            for local in local_files:
+                found_match = False
+                for remote in login_packet.files:
+                    if remote == local:
+                        found_match = True
+                        if local > remote:
+                            send_files.append(local)
+                        break
+
+                if not found_match:
+                    send_files.append(local)
+
+            for remote in login_packet.files:
+                found_match = False
+                for local in local_files:
+                    if local == remote:
+                        found_match = True
+                        if remote > local:
+                            request_files.append(remote)
+                        break
+
+                if not found_match:
+                    request_files.append(remote)
+
+            print request_files
+            print send_files
+
+            for request in request_files:
+                request_object(request)
+
+            for send in send_files:
+                send_object(send)
 
             logout_packet = packets.LogoutPacket(False)
             self.object_socket.send_object(logout_packet)
@@ -79,8 +106,8 @@ class MessageHandler(object):
         def receive_object(send_file_packet):
             """Receives a send file packet, and processes it"""
             info = send_file_packet.file_info
-            info.file_wrapper.set_timestamp(info.last_modified)
             info.file_wrapper.move(os.path.join(self.directory.get_path(), info.path))
+            info.file_wrapper.set_timestamp(info.last_modified)
             return 0
 
         def logout(logout_packet):

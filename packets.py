@@ -29,10 +29,22 @@ class FileInfo:
         self.size = size
         self.file_wrapper = file_wrapper
         if file_wrapper is not None:
-            self.is_directory = isinstance(file_wrapper, Directory)
-            self.last_modified = file_wrapper.get_timestamp()
-            self.size = file_wrapper.get_size()
+            if is_directory is None:
+                self.is_directory = isinstance(file_wrapper, Directory)
+            if last_modified is None:
+                self.last_modified = file_wrapper.get_timestamp()
+            if size is None and not self.is_directory:
+                self.size = file_wrapper.get_size()
 
+    def __eq__(self, obj):
+        if not isinstance(obj, FileInfo):
+            return False
+        return self.path == obj.path and self.is_directory == obj.is_directory
+
+    def __gt__(self, obj):
+        if not isinstance(obj, FileInfo):
+            return False
+        return self.last_modified > obj.last_modified
 
 class LoginPacket:
     ID = 0
@@ -45,7 +57,7 @@ class LoginPacket:
         @param directory_name: The name of the local directory that the user is syncing.
         @type directory_name: str
         @param files: A list of files in the client's directory. (FileInfo objects)
-                     (From the files I need the relative path, last modified (epoch))
+                     (From the files I need the relative path, last modified (epoch), and if it's a directory)
         @type files: list of FileInfo
         """
         self.username = username
@@ -94,7 +106,7 @@ class LoginPacket:
         print '\t-> Files:'
         # Parse all file info
         files = []
-        for file_index in range(files_count):
+        for _ in range(files_count):
             fixed = bytearray(6)
             socket.recv_into(fixed)
             file_path_length = byte_utils.bytes_to_char(fixed, 0)
@@ -174,7 +186,7 @@ class SendFilePacket:
         body = bytearray()
         file_path = self.file_info.path
         file_size = self.file_info.size
-        last_modified = int(time.time())
+        last_modified = self.file_info.last_modified
         body.extend(byte_utils.char_to_bytes(len(file_path)))
         body.extend(byte_utils.boolean_to_bytes(self.file_info.is_directory))
         body.extend(byte_utils.unsigned_int_to_bytes(last_modified))
@@ -226,6 +238,8 @@ class SendFilePacket:
                 chunk_size = min(chunk_size, remaining)
             file_wrapper.flush()
             print 'Read the whole file, its in:', file_wrapper.get_path()
+        else:
+            file_wrapper = Directory()
 
         packet = SendFilePacket(FileInfo(file_path, file_is_directory, file_last_modified, file_size, file_wrapper))
         return packet
