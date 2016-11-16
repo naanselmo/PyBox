@@ -85,7 +85,7 @@ class MessageHandler(object):
 
         def logout(logout_packet):
             """Receives a logout packet and terminates"""
-            if not logout_packet.isReply:
+            if not logout_packet.is_reply:
                 logout_packet = packets.LogoutPacket(True)
                 self.object_socket.send_object(logout_packet)
             return -1
