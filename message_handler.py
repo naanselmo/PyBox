@@ -1,11 +1,9 @@
 """Handles all the core functions for PyBox"""
 
 import os
-import threading
-
+from files import Directory, get_wrapper
 import packets
-from files import File, Directory
-
+import threading
 
 class MessageHandler(object):
     """Handles all the core functions for PyBox"""
@@ -23,8 +21,10 @@ class MessageHandler(object):
         """Creates a login packet and sends it to the ObjectSocket"""
         self.directory = Directory(directory)
         obj_list = []
-        for f in self.directory.list():
-            obj_list.append(path=f.get_relpath(self.directory.get_path()), file_wrapper=packets.FileInfo(f))
+        for file_iterator in self.directory.list():
+            obj_list.append(packets.FileInfo(\
+                path=file_iterator.get_relpath(self.directory.get_path()),\
+                file_wrapper=packets.FileInfo(file_iterator)))
         login_packet = packets.LoginPacket(user, os.path.split(directory)[1], obj_list)
         self.object_socket.send_object(login_packet)
 
@@ -42,36 +42,65 @@ class MessageHandler(object):
                 request_file_packet = packets.RequestFilePacket(info)
                 self.object_socket.send_object(request_file_packet)
 
-            self.directory = Directory(login_packet.username + "-" + login_packet.directory_name)
-            # TODO: Handle a new login, sending or requesting new files as needed
+            def send_object(path):
+                """Creates a send object packet and sends it to the ObjectSocket"""
+                abs_path = os.path.join(self.directory.get_path(), path)
+                obj = get_wrapper(abs_path)
+                info = packets.FileInfo(path=path, file_wrapper=obj)
+                send_file_packet = packets.SendFilePacket(info)
+                self.object_socket.send_object(send_file_packet)
 
-        def send_object(request_file_packet):
+            self.directory = Directory(login_packet.username + "-" + login_packet.directory_name)
+            for info in login_packet.files:
+                path = os.path.join(self.directory.get_path(), info.path)
+                obj = get_wrapper(path)
+                if obj is not None:
+                    if info.last_modified > obj.get_timestamp():
+                        request_object(info.path)
+                    elif info.last_modified < obj.get_timestamp():
+                        send_object(info.path)
+                else:
+                    request_object(info.path)
+
+            logout_packet = packets.LogoutPacket(False)
+            self.object_socket.send_object(logout_packet)
+            return 0
+
+        def receive_request(request_file_packet):
             """Creates a send object packet and sends it to the ObjectSocket"""
             path = request_file_packet.file_info.path
             abs_path = os.path.join(self.directory.get_path(), path)
-            if os.path.isdir(abs_path):
-                obj = Directory(abs_path)
-            else:
-                obj = File(abs_path)
+            obj = get_wrapper(abs_path)
             info = packets.FileInfo(path=path, file_wrapper=obj)
             send_file_packet = packets.SendFilePacket(info)
             self.object_socket.send_object(send_file_packet)
+            return 0
 
         def receive_object(send_file_packet):
             """Receives a send file packet, and processes it"""
             info = send_file_packet.file_info
             info.file_wrapper.set_timestamp(info.last_modified)
             info.file_wrapper.move(os.path.join(self.directory.get_path(), info.path))
+            return 0
 
-        action = {
+        def logout(logout_packet):
+            """Receives a logout packet and terminates"""
+            if not logout_packet.is_reply:
+                logout_packet = packets.LogoutPacket(True)
+                self.object_socket.send_object(logout_packet)
+            return -1
+
+        packet_actions = {
             packets.LoginPacket: receive_login,
-            packets.RequestFilePacket: send_object,
-            packets.SendFilePacket: receive_object
+            packets.RequestFilePacket: receive_request,
+            packets.SendFilePacket: receive_object,
+            packets.LogoutPacket: logout
         }
 
         while True:
             packet_object = self.object_socket.receive_object()
-            for t in action:
-                if isinstance(packet_object, t):
-                    action[t](packet_object)
+            for packet_type in packet_actions:
+                if isinstance(packet_object, packet_type):
+                    if packet_actions[packet_type](packet_object) == -1:
+                        return
                     break

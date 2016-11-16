@@ -33,7 +33,13 @@ class File(object):
 
     def move(self, destination):
         """Moves the file to the given path"""
+        destination = os.path.normpath(destination)
         self.file.close()
+        if os.path.exists(destination):
+            if os.path.isdir(destination):
+                os.rmdir(destination)
+            else:
+                os.remove(destination)
         os.makedirs(os.path.split(destination)[0])
         shutil.move(self.get_path(), destination)
         self.file = open(destination)
@@ -112,6 +118,12 @@ class Directory(object):
     def move(self, destination):
         """Moves the directory to the given path"""
         destination = os.path.normpath(destination)
+        if os.path.exists(destination):
+            if os.path.isdir(destination):
+                os.rmdir(self.get_path())
+                return
+            else:
+                os.remove(destination)
         os.makedirs(os.path.split(destination)[0])
         shutil.move(self.get_path(), destination)
         self.directory = destination
@@ -133,3 +145,12 @@ class Directory(object):
                         yield sub
             else:
                 yield File(abs_path)
+
+def get_wrapper(path):
+    """Returns the correct wrapper for the given path"""
+    if os.path.exists(path):
+        if os.path.isdir(path):
+            return Directory(path)
+        elif os.path.isfile(path):
+            return File(path)
+    return None
