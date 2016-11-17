@@ -10,12 +10,25 @@ class File(object):
 
     def __init__(self, path=None):
         super(File, self).__init__()
+        self.file = None
         if path is not None:
-            self.file = open(os.path.normpath(path), 'rb')
+            self.path = path
         else:
             temp = tempfile.mkstemp()
             os.close(temp[0])
-            self.file = open(temp[1], 'w+b')
+            self.path = temp[1]
+
+    def open(self):
+        """Opens the file object"""
+        self.file = open(os.path.normpath(self.path), 'rb')
+
+    def close(self):
+        """Closes the file object"""
+        self.file.close()
+
+    def flush(self):
+        """Forcefully flushes pending data to file"""
+        self.file.flush()
 
     def get_path(self):
         """Returns the file's path"""
@@ -38,7 +51,7 @@ class File(object):
                 os.remove(destination)
         try:
             os.makedirs(os.path.split(destination)[0])
-        except Exception as e:
+        except Exception as _:
             pass
         shutil.move(self.get_path(), destination)
         self.file = open(destination)
@@ -66,10 +79,6 @@ class File(object):
     def write(self, data):
         """Writes data to file"""
         self.file.write(data)
-
-    def flush(self):
-        """Forcefully flushes pending data to file"""
-        self.file.flush()
 
     def read(self, count):
         """Reads data from the file"""
@@ -126,7 +135,7 @@ class Directory(object):
 
         try:
             os.makedirs(os.path.split(destination)[0])
-        except Exception as e:
+        except Exception as _:
             pass
         shutil.move(self.get_path(), destination)
         self.directory = destination
