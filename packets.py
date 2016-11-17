@@ -1,7 +1,7 @@
 import byte_utils
 from files import File, Directory
 import utils
-
+from socket import MSG_WAITALL
 
 class FileInfo:
     def __init__(self, path, is_directory=None, last_modified=None, size=None, file_wrapper=None):
@@ -76,7 +76,7 @@ class LoginPacket:
         body.extend(byte_utils.unsigned_int_to_bytes(len(self.files)))
         body.extend(byte_utils.string_to_bytes(self.username))
         body.extend(byte_utils.string_to_bytes(self.directory_name))
-        socket.send(body)
+        socket.sendall(body)
         # Append all file info
         for file_info in self.files:
             body = bytearray()
@@ -84,17 +84,17 @@ class LoginPacket:
             body.extend(byte_utils.boolean_to_bytes(file_info.is_directory))
             body.extend(byte_utils.unsigned_int_to_bytes(file_info.last_modified))
             body.extend(byte_utils.string_to_bytes(file_info.path))
-            socket.send(body)
+            socket.sendall(body)
 
     @staticmethod
     def decode(socket):
         fixed = bytearray(6)
-        socket.recv_into(fixed)
+        socket.recv_into(fixed, flags=MSG_WAITALL)
         username_length = byte_utils.bytes_to_char(fixed, 0)
         directory_name_length = byte_utils.bytes_to_char(fixed, 1)
         files_count = byte_utils.bytes_to_unsigned_int(fixed, 2)
         dynamic = bytearray(username_length + directory_name_length)
-        socket.recv_into(dynamic)
+        socket.recv_into(dynamic, flags=MSG_WAITALL)
         username = byte_utils.bytes_to_string(dynamic, username_length, 0)
         directory_name = byte_utils.bytes_to_string(dynamic, directory_name_length, username_length)
         if utils.DEBUG_LEVEL >= 3:
@@ -111,12 +111,12 @@ class LoginPacket:
             if utils.DEBUG_LEVEL >= 2:
                 utils.log_message("DEBUG", "Waiting for file info " + str(count) + "/" + str(files_count))
             fixed = bytearray(6)
-            socket.recv_into(fixed)
+            socket.recv_into(fixed, flags=MSG_WAITALL)
             file_path_length = byte_utils.bytes_to_char(fixed, 0)
             file_is_directory = byte_utils.bytes_to_boolean(fixed, 1)
             file_last_modified = byte_utils.bytes_to_unsigned_int(fixed, 2)
             strings = bytearray(file_path_length)
-            socket.recv_into(strings)
+            socket.recv_into(strings, flags=MSG_WAITALL)
             file_path = byte_utils.bytes_to_string(strings, file_path_length, 0)
             if utils.DEBUG_LEVEL >= 3:
                 utils.log_message("DEBUG", "File path length: " + str(file_path_length))
@@ -151,15 +151,15 @@ class RequestFilePacket:
         file_path = self.file_info.path
         body.extend(byte_utils.char_to_bytes(len(file_path)))
         body.extend(byte_utils.string_to_bytes(file_path))
-        socket.send(body)
+        socket.sendall(body)
 
     @staticmethod
     def decode(socket):
         fixed = bytearray(1)
-        socket.recv_into(fixed)
+        socket.recv_into(fixed, flags=MSG_WAITALL)
         file_path_length = byte_utils.bytes_to_char(fixed, 0)
         strings = bytearray(file_path_length)
-        socket.recv_into(strings)
+        socket.recv_into(strings, flags=MSG_WAITALL)
         file_path = byte_utils.bytes_to_string(strings, file_path_length, 0)
         if utils.DEBUG_LEVEL >= 3:
             utils.log_message("DEBUG", "Decoded request file packet: ")
@@ -198,29 +198,29 @@ class SendFilePacket:
         if not self.file_info.is_directory:
             body.extend(byte_utils.unsigned_int_to_bytes(file_size))
         body.extend(byte_utils.string_to_bytes(file_path))
-        socket.send(body)
+        socket.sendall(body)
         # append file's content from file_info.file_wrapper.chunks() if is not
         # directory
         if not self.file_info.is_directory:
             for chunk in self.file_info.file_wrapper.chunks(self.CHUNK_SIZE):
                 if utils.DEBUG_LEVEL >= 3:
                     utils.log_message("DEBUG", "Chunk size: " + str(len(chunk)))
-                socket.send(chunk)
+                socket.sendall(chunk)
 
     @staticmethod
     def decode(socket):
         fixed = bytearray(6)
-        socket.recv_into(fixed)
+        socket.recv_into(fixed, flags=MSG_WAITALL)
         file_path_length = byte_utils.bytes_to_char(fixed, 0)
         file_is_directory = byte_utils.bytes_to_boolean(fixed, 1)
         file_last_modified = byte_utils.bytes_to_unsigned_int(fixed, 2)
         file_size = None
         if not file_is_directory:
             fixed = bytearray(4)
-            socket.recv_into(fixed)
+            socket.recv_into(fixed, flags=MSG_WAITALL)
             file_size = byte_utils.bytes_to_unsigned_int(fixed, 0)
         strings = bytearray(file_path_length)
-        socket.recv_into(strings)
+        socket.recv_into(strings, flags=MSG_WAITALL)
         file_path = byte_utils.bytes_to_string(strings, file_path_length, 0)
         if utils.DEBUG_LEVEL >= 3:
             utils.log_message("DEBUG", "Decoded send file packet: ")
@@ -239,7 +239,7 @@ class SendFilePacket:
                 if utils.DEBUG_LEVEL >= 3:
                     utils.log_message("DEBUG", "Chunk size: " + str(chunk_size))
                 chunk = bytearray(chunk_size)
-                received_bytes = socket.recv_into(chunk)
+                received_bytes = socket.recv_into(chunk, flags=MSG_WAITALL)
                 received_bytes_acc += received_bytes
                 file_wrapper.write(chunk)
                 remaining -= received_bytes
@@ -269,14 +269,14 @@ class LogoutPacket:
     def send(self, socket):
         body = bytearray()
         body.extend(byte_utils.boolean_to_bytes(self.is_reply))
-        socket.send(body)
+        socket.sendall(body)
 
     @staticmethod
     def decode(socket):
         if utils.DEBUG_LEVEL >= 3:
             utils.log_message("DEBUG", "Decode logout packet")
         fixed = bytearray(1)
-        socket.recv_into(fixed)
+        socket.recv_into(fixed, flags=MSG_WAITALL)
         is_reply = byte_utils.bytes_to_boolean(fixed, 0)
         if utils.DEBUG_LEVEL >= 3:
             utils.log_message("DEBUG", "Is reply: " + str(is_reply))
