@@ -3,6 +3,7 @@
 import os
 import shutil
 import tempfile
+import utils
 
 
 class File(object):
@@ -17,11 +18,11 @@ class File(object):
             temp = tempfile.mkstemp()
             os.close(temp[0])
             self.path = temp[1]
-            self.file = open(self.path, 'w+b')
+            self.file = open(self.get_path(), 'w+b')
 
     def open(self):
         """Opens the file object"""
-        self.file = open(self.path, 'rb')
+        self.file = open(self.get_path(), 'rb')
 
     def is_open(self):
         """Returns whether the file is open or not"""
@@ -39,7 +40,7 @@ class File(object):
 
     def get_path(self):
         """Returns the file's path"""
-        return self.path
+        return os.path.normpath(self.path)
 
     def get_relpath(self, path=None):
         """Returns the file's path relative to another one"""
@@ -49,6 +50,10 @@ class File(object):
 
     def move(self, destination):
         """Moves the file to the given path"""
+        destination = os.path.normpath(destination)
+        if utils.DEBUG_LEVEL >= 1:
+            utils.log_message("DEBUG", "Moving file to path " + str(destination))
+
         reopen = False
         if self.is_open():
             reopen = True
@@ -144,7 +149,7 @@ class Directory(object):
     def __init__(self, path=None):
         super(Directory, self).__init__()
         if path is not None:
-            self.path = path
+            self.path = os.path.normpath(path)
             if not os.path.exists(self.path):
                 os.makedirs(self.path)
         else:
@@ -152,7 +157,7 @@ class Directory(object):
 
     def get_path(self):
         """Returns the directory's path"""
-        return self.path
+        return os.path.realpath(self.path)
 
     def get_relpath(self, path=None):
         """Returns the directory's path relative to another one"""
@@ -162,6 +167,10 @@ class Directory(object):
 
     def move(self, destination):
         """Moves the directory to the given path"""
+        destination = os.path.normpath(destination)
+        if utils.DEBUG_LEVEL >= 1:
+            utils.log_message("DEBUG", "Moving directory to path " + str(destination))
+
         if os.path.exists(destination):
             if os.path.isdir(destination):
                 os.rmdir(self.get_path())

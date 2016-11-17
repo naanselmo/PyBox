@@ -11,9 +11,9 @@ def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(('', port))
-    server_socket.listen(1)
+    server_socket.listen(5)
 
-    while 1:
+    while True:
         connection_socket, _ = server_socket.accept()
         object_socket = ObjectSocket(connection_socket)
         MessageHandler(object_socket, thread=True)
