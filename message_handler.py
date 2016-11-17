@@ -132,7 +132,6 @@ class MessageHandler(object):
 
         while True:
             packet_object = self.object_socket.receive_object()
-            utils.log_message("INFO", "Received packet, processing...")
             for packet_type in packet_actions:
                 if isinstance(packet_object, packet_type):
                     if packet_actions[packet_type](packet_object) == -1:

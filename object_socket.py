@@ -1,5 +1,6 @@
 from packets import LoginPacket, RequestFilePacket, SendFilePacket, LogoutPacket
 from byte_utils import char_to_bytes, bytes_to_char
+import utils
 
 
 class ObjectSocket:
@@ -35,7 +36,7 @@ class ObjectSocket:
 
         # Parse the packet id and decode it
         packet_id = bytes_to_char(header)
-        print 'Packet id:', packet_id
+        utils.log_message("DEBUG", "Packet id: " + str(packet_id))
         for clazz in self.PACKET_CLASSES:
             if packet_id == clazz.ID:
                 return clazz.decode(self.socket)
