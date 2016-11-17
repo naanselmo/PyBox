@@ -2,7 +2,7 @@
 Pacotes
 -------
 
--> login 
+-> login
 	-> username
 	-> directoryName
 	-> files array de com (path, is_directory, last modified)
@@ -20,9 +20,9 @@ Pacotes
 Mensagens
 ---------
 
--> Header: 
+-> Header:
 	1 byte para tipo de pacote.
--> Corpo: 
+-> Corpo:
 	-> Se login packet: (0)
 		-> 1 byte para especificar o tamanho do nome do utilizador. (maximo de caracteres - 256)
 		-> 1 byte para especificar o tamanho do nome da diretoria que o utilizador esta a sincronizar. (maximo de caracteres - 256)
@@ -56,10 +56,9 @@ Mensagens
 Funcionamento
 -------------
 
--> Inicial
-	-> Client liga ao servidor, mandando um pacote de login, onde especifica o seu username e todos os ficheiros que tem.
+	1. Cliente liga ao servidor, enviando um Login packet, onde especifica o seu username e todos os ficheiros e folders que tem, bem como os seus timestamps.
+	2. Servidor compara os ficheiros do cliente com os que tem. Para todos os ficheiros que ou o server não tiver ou o cliente tiver mais recente, envia um RequestFile packet; para todos os ficheiros que o cliente não tiver ou o servidor tiver mais recente, envia um SendFile packet. Depois de todos esses packets, envia um Logout packet para indicar que pretende terminar a ligação pois já enviou tudo o que tinha a enviar.
+	3. Cliente recebe os RequestFile packets e envia SendFile packets contendo o ficheiro e metadata, e recebe SendFile packets contendo os ficheiros que não tinha actualizados. Por fim irá receber o Logout packet a indicar que o Servidor pretende terminar a ligação, ao qual responde com um Logout packet a confirmar que a ligação pode ser fechada.
+	4. Servidor recebe todos os SendFile packet, que foram respostas aos seus RequestFile, e por fim o Logout packet, terminando a ligação correspondente a esse cliente.
 
-	-> Servidor compara os ficheiros do cliente com os que tem. Se não tiver os ficheiros que o cliente tem, então faz um 
-	requestFile ao cliente, especificando qual o ficheiro que não tem. O cliente por sua vez, recebe o request e envia o
-	ficheiro usando o pacote sendFile.
-	Se o cliente não tem ficheiros que o servidor tem, o servidor manda o ficheiro atravês do pacote sendFile.
+	É de notar que o Logout packet do Servidor é enviado somente após este ter enviado ou pedido todos os ficheiros necessários (não precisa de ter já recebido), e que o Cliente irá receber esse packet apenas depois de ter recebido ou enviado todos os ficheiros necessários (que já terá obrigatoriamente recebido devido à ordem pela qual são enviados pelo Servidor). O Servidor não fecha logo a ligação pois necessita que o Cliente primeiro responda com todos os ficheiros necessários. Assim, a ligação apenas é fechada após ambos os lados terem confirmação que o outro lado também a quer fechar, por ter enviado um Logout packet. Visto que a ordem das mensagens é garantida por TCP, a ligação permanece aberta até ambos os lados sinalizarem que não têm mais nada a enviar.
