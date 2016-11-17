@@ -67,6 +67,7 @@ class File(object):
             pass
 
         shutil.move(self.get_path(), destination)
+        self.path = destination
 
         if reopen:
             self.file = open(destination)
@@ -97,7 +98,7 @@ class File(object):
 
     def write(self, data):
         """Writes data to file"""
-        if not self.file.is_open():
+        if not self.is_open():
             self.open()
             self.file.write(data)
             self.close()
