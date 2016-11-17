@@ -4,6 +4,7 @@ from object_socket import ObjectSocket
 from message_handler import MessageHandler
 import socket
 import sys
+import utils
 
 def main():
     '''Starts execution once everything is loaded'''
@@ -17,7 +18,7 @@ def main():
     try:
         client_socket.connect((hostname, port))
     except Exception as _:
-        print "PyBox is currently unavailable"
+        utils.log_message("ERROR", "PyBox is currently unavailable due to socket error")
         client_socket.close()
         return
 

@@ -4,6 +4,7 @@ import os
 from files import Directory, get_wrapper
 import packets
 import threading
+import utils
 
 class MessageHandler(object):
     """Handles all the core functions for PyBox"""
@@ -19,6 +20,7 @@ class MessageHandler(object):
 
     def do_login(self, user, directory):
         """Creates a login packet and sends it to the ObjectSocket"""
+        utils.log_message("INFO", "Sending login")
         self.directory = Directory(directory)
         obj_list = []
         for file_iterator in self.directory.list(True):
@@ -38,14 +40,17 @@ class MessageHandler(object):
 
             def request_object(info):
                 """Creates a request file packet and sends it to the ObjectSocket"""
+                utils.log_message("INFO", "Requesting file/directory: " + info.path)
                 request_file_packet = packets.RequestFilePacket(info)
                 self.object_socket.send_object(request_file_packet)
 
             def send_object(info):
                 """Creates a send object packet and sends it to the ObjectSocket"""
+                utils.log_message("INFO", "Sending file/directory: " + info.path)
                 send_file_packet = packets.SendFilePacket(info)
                 self.object_socket.send_object(send_file_packet)
 
+            utils.log_message("INFO", "Receiving login")
             self.directory = Directory(login_packet.username + "-" + login_packet.directory_name)
 
             local_files = []
@@ -80,9 +85,6 @@ class MessageHandler(object):
                 if not found_match:
                     request_files.append(remote)
 
-            print request_files
-            print send_files
-
             for request in request_files:
                 request_object(request)
 
@@ -95,6 +97,8 @@ class MessageHandler(object):
 
         def receive_request(request_file_packet):
             """Creates a send object packet and sends it to the ObjectSocket"""
+
+            utils.log_message("INFO", "Received request to send file")
             path = request_file_packet.file_info.path
             abs_path = os.path.join(self.directory.get_path(), path)
             obj = get_wrapper(abs_path)
@@ -105,6 +109,7 @@ class MessageHandler(object):
 
         def receive_object(send_file_packet):
             """Receives a send file packet, and processes it"""
+            utils.log_message("INFO", "Receiving object")
             info = send_file_packet.file_info
             info.file_wrapper.move(os.path.join(self.directory.get_path(), info.path))
             info.file_wrapper.set_timestamp(info.last_modified)
@@ -112,6 +117,7 @@ class MessageHandler(object):
 
         def logout(logout_packet):
             """Receives a logout packet and terminates"""
+            utils.log_message("INFO", "Received logout")
             if not logout_packet.is_reply:
                 logout_packet = packets.LogoutPacket(True)
                 self.object_socket.send_object(logout_packet)
@@ -126,8 +132,10 @@ class MessageHandler(object):
 
         while True:
             packet_object = self.object_socket.receive_object()
+            utils.log_message("INFO", "Received packet, processing...")
             for packet_type in packet_actions:
                 if isinstance(packet_object, packet_type):
                     if packet_actions[packet_type](packet_object) == -1:
+                        utils.log_message("INFO", "Logging out")
                         return
                     break
