@@ -147,6 +147,8 @@ class Directory(object):
         super(Directory, self).__init__()
         if path is not None:
             self.path = os.path.normpath(path)
+            if not os.path.exists(self.path):
+                os.makedirs(self.path)
         else:
             self.path = tempfile.mkdtemp()
 
