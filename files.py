@@ -17,11 +17,11 @@ class File(object):
             temp = tempfile.mkstemp()
             os.close(temp[0])
             self.path = temp[1]
-            self.file = open(os.path.normpath(self.path), 'w+b')
+            self.file = open(self.path, 'w+b')
 
     def open(self):
         """Opens the file object"""
-        self.file = open(os.path.normpath(self.path), 'rb')
+        self.file = open(self.path, 'rb')
 
     def is_open(self):
         """Returns whether the file is open or not"""
@@ -49,8 +49,6 @@ class File(object):
 
     def move(self, destination):
         """Moves the file to the given path"""
-        destination = os.path.normpath(destination)
-
         reopen = False
         if self.is_open():
             reopen = True
@@ -146,7 +144,7 @@ class Directory(object):
     def __init__(self, path=None):
         super(Directory, self).__init__()
         if path is not None:
-            self.path = os.path.normpath(path)
+            self.path = path
             if not os.path.exists(self.path):
                 os.makedirs(self.path)
         else:
@@ -164,7 +162,6 @@ class Directory(object):
 
     def move(self, destination):
         """Moves the directory to the given path"""
-        destination = os.path.normpath(destination)
         if os.path.exists(destination):
             if os.path.isdir(destination):
                 os.rmdir(self.get_path())

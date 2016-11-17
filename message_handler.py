@@ -97,9 +97,8 @@ class MessageHandler(object):
 
         def receive_request(request_file_packet):
             """Creates a send object packet and sends it to the ObjectSocket"""
-
-            utils.log_message("INFO", "Received request to send file")
             path = request_file_packet.file_info.path
+            utils.log_message("INFO", "Received request to send file: " + path)
             abs_path = os.path.join(self.directory.get_path(), path)
             obj = get_wrapper(abs_path)
             info = packets.FileInfo(path=path, file_wrapper=obj)
@@ -109,8 +108,8 @@ class MessageHandler(object):
 
         def receive_object(send_file_packet):
             """Receives a send file packet, and processes it"""
-            utils.log_message("INFO", "Receiving object")
             info = send_file_packet.file_info
+            utils.log_message("INFO", "Receiving object: " + info.path)
             info.file_wrapper.move(os.path.join(self.directory.get_path(), info.path))
             info.file_wrapper.set_timestamp(info.last_modified)
             return 0
