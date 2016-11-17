@@ -98,13 +98,13 @@ class LoginPacket:
         username = byte_utils.bytes_to_string(dynamic, username_length, 0)
         directory_name = byte_utils.bytes_to_string(dynamic, directory_name_length, username_length)
         if utils.DEBUG_LEVEL >= 3:
-            utils.log_message("DEBUG", "Decoded login packet:")
-            utils.log_message("DEBUG", "Username length:" + str(username_length))
-            utils.log_message("DEBUG", "Directory name length:" + str(directory_name_length))
-            utils.log_message("DEBUG", "Files count:" + str(files_count))
-            utils.log_message("DEBUG", "Username:" + str(username))
-            utils.log_message("DEBUG", "Directory name:" + str(directory_name))
-            utils.log_message("DEBUG", "Files:")
+            utils.log_message("DEBUG", "Decoded login packet: ")
+            utils.log_message("DEBUG", "Username length: " + str(username_length))
+            utils.log_message("DEBUG", "Directory name length: " + str(directory_name_length))
+            utils.log_message("DEBUG", "Files count: " + str(files_count))
+            utils.log_message("DEBUG", "Username: " + str(username))
+            utils.log_message("DEBUG", "Directory name: " + str(directory_name))
+            utils.log_message("DEBUG", "Files: ")
         # Parse all file info
         files = []
         for count in range(files_count):
@@ -119,10 +119,10 @@ class LoginPacket:
             socket.recv_into(strings)
             file_path = byte_utils.bytes_to_string(strings, file_path_length, 0)
             if utils.DEBUG_LEVEL >= 3:
-                utils.log_message("DEBUG", "File path length:" + str(file_path_length))
-                utils.log_message("DEBUG", "Is directory:" + str(file_is_directory))
-                utils.log_message("DEBUG", "File timestamp:" + str(utils.format_timestamp(file_last_modified)))
-                utils.log_message("DEBUG", "File path:" + str(file_path))
+                utils.log_message("DEBUG", "File path length: " + str(file_path_length))
+                utils.log_message("DEBUG", "Is directory: " + str(file_is_directory))
+                utils.log_message("DEBUG", "File timestamp: " + str(utils.format_timestamp(file_last_modified)))
+                utils.log_message("DEBUG", "File path: " + str(file_path))
             files.append(FileInfo(file_path, file_is_directory, file_last_modified))
 
         packet = LoginPacket(username, directory_name, files)
@@ -162,9 +162,9 @@ class RequestFilePacket:
         socket.recv_into(strings)
         file_path = byte_utils.bytes_to_string(strings, file_path_length, 0)
         if utils.DEBUG_LEVEL >= 3:
-            utils.log_message("DEBUG", "Decoded request file packet:")
-            utils.log_message("DEBUG", "File path length:" + str(file_path_length))
-            utils.log_message("DEBUG", "File Path:" + str(file_path))
+            utils.log_message("DEBUG", "Decoded request file packet: ")
+            utils.log_message("DEBUG", "File path length: " + str(file_path_length))
+            utils.log_message("DEBUG", "File Path: " + str(file_path))
         packet = RequestFilePacket(FileInfo(file_path))
         return packet
 
@@ -204,7 +204,7 @@ class SendFilePacket:
         if not self.file_info.is_directory:
             for chunk in self.file_info.file_wrapper.chunks(self.CHUNK_SIZE):
                 if utils.DEBUG_LEVEL >= 3:
-                    utils.log_message("DEBUG", "Chunk size:" + str(len(chunk)))
+                    utils.log_message("DEBUG", "Chunk size: " + str(len(chunk)))
                 socket.send(chunk)
 
     @staticmethod
@@ -223,12 +223,12 @@ class SendFilePacket:
         socket.recv_into(strings)
         file_path = byte_utils.bytes_to_string(strings, file_path_length, 0)
         if utils.DEBUG_LEVEL >= 3:
-            utils.log_message("DEBUG", "Decoded send file packet:")
-            utils.log_message("DEBUG", "File path length:" + str(file_path_length))
-            utils.log_message("DEBUG", "Is directory:" + str(file_is_directory))
-            utils.log_message("DEBUG", "Last modified:" + str(file_last_modified))
-            utils.log_message("DEBUG", "File size:" + str(file_size))
-            utils.log_message("DEBUG", "File Path:" + str(file_path))
+            utils.log_message("DEBUG", "Decoded send file packet: ")
+            utils.log_message("DEBUG", "File path length: " + str(file_path_length))
+            utils.log_message("DEBUG", "Is directory: " + str(file_is_directory))
+            utils.log_message("DEBUG", "Last modified: " + str(file_last_modified))
+            utils.log_message("DEBUG", "File size: " + str(file_size))
+            utils.log_message("DEBUG", "File Path: " + str(file_path))
         # parse file's contents to File().write() 1024 chunks if is not directory
         if not file_is_directory:
             chunk_size = min(SendFilePacket.CHUNK_SIZE, file_size)
@@ -237,7 +237,7 @@ class SendFilePacket:
             received_bytes_acc = 0
             while remaining > 0:
                 if utils.DEBUG_LEVEL >= 3:
-                    utils.log_message("DEBUG", "Chunk size:" + str(chunk_size))
+                    utils.log_message("DEBUG", "Chunk size: " + str(chunk_size))
                 chunk = bytearray(chunk_size)
                 received_bytes = socket.recv_into(chunk)
                 received_bytes_acc += received_bytes
@@ -279,7 +279,7 @@ class LogoutPacket:
         socket.recv_into(fixed)
         is_reply = byte_utils.bytes_to_boolean(fixed, 0)
         if utils.DEBUG_LEVEL >= 3:
-            utils.log_message("DEBUG", "Is reply:" + str(is_reply))
+            utils.log_message("DEBUG", "Is reply: " + str(is_reply))
         return LogoutPacket(is_reply)
 
 # class FileChangedPacket:
