@@ -17,22 +17,29 @@ class File(object):
             temp = tempfile.mkstemp()
             os.close(temp[0])
             self.path = temp[1]
+            self.file = open(os.path.normpath(self.path), 'w+b')
 
     def open(self):
         """Opens the file object"""
         self.file = open(os.path.normpath(self.path), 'rb')
 
+    def is_open(self):
+        """Returns whether the file is open or not"""
+        return self.file is not None
+
     def close(self):
         """Closes the file object"""
-        self.file.close()
+        if self.is_open():
+            self.file.close()
 
     def flush(self):
         """Forcefully flushes pending data to file"""
-        self.file.flush()
+        if self.is_open():
+            self.file.flush()
 
     def get_path(self):
         """Returns the file's path"""
-        return self.file.name
+        return self.path
 
     def get_relpath(self, path=None):
         """Returns the file's path relative to another one"""
@@ -43,7 +50,12 @@ class File(object):
     def move(self, destination):
         """Moves the file to the given path"""
         destination = os.path.normpath(destination)
-        self.file.close()
+
+        reopen = False
+        if self.is_open():
+            reopen = True
+            self.close()
+
         if os.path.exists(destination):
             if os.path.isdir(destination):
                 os.rmdir(destination)
@@ -53,8 +65,11 @@ class File(object):
             os.makedirs(os.path.split(destination)[0])
         except Exception as _:
             pass
+
         shutil.move(self.get_path(), destination)
-        self.file = open(destination)
+
+        if reopen:
+            self.file = open(destination)
 
     def get_timestamp(self):
         """Returns the modified timestamp"""
@@ -66,11 +81,15 @@ class File(object):
 
     def set_position(self, position):
         """Sets the seek position"""
-        self.file.seek(position)
+        if self.is_open():
+            self.file.seek(position)
 
     def get_position(self):
         """Gets the current seek position"""
-        return self.file.tell()
+        if self.is_open():
+            return self.file.tell()
+        else:
+            return 0
 
     def get_size(self):
         """Gets the size"""
@@ -78,11 +97,22 @@ class File(object):
 
     def write(self, data):
         """Writes data to file"""
-        self.file.write(data)
+        if not self.file.is_open():
+            self.open()
+            self.file.write(data)
+            self.close()
+        else:
+            self.file.write(data)
 
     def read(self, count):
         """Reads data from the file"""
-        return self.file.read(count)
+        if not self.is_open():
+            self.open()
+            data = self.file.read(count)
+            self.close()
+        else:
+            data = self.file.read(count)
+        return data
 
     def bytes(self):
         """Byte generator for this file"""
@@ -92,6 +122,10 @@ class File(object):
 
     def chunks(self, chunksize=1024):
         """Chunk generator for this file"""
+        close = False
+        if not self.is_open():
+            close = True
+            self.open()
         temp = self.get_position()
         self.set_position(0)
         while True:
@@ -101,6 +135,8 @@ class File(object):
             else:
                 break
         self.set_position(temp)
+        if close:
+            self.close()
 
 
 class Directory(object):
@@ -109,13 +145,13 @@ class Directory(object):
     def __init__(self, path=None):
         super(Directory, self).__init__()
         if path is not None:
-            self.directory = os.path.normpath(path)
+            self.path = os.path.normpath(path)
         else:
-            self.directory = tempfile.mkdtemp()
+            self.path = tempfile.mkdtemp()
 
     def get_path(self):
         """Returns the directory's path"""
-        return self.directory
+        return self.path
 
     def get_relpath(self, path=None):
         """Returns the directory's path relative to another one"""
@@ -138,7 +174,7 @@ class Directory(object):
         except Exception as _:
             pass
         shutil.move(self.get_path(), destination)
-        self.directory = destination
+        self.path = destination
 
     def get_timestamp(self):
         """Returns the modified timestamp"""
