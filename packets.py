@@ -46,6 +46,7 @@ class FileInfo:
             return False
         return self.last_modified > obj.last_modified
 
+
 class LoginPacket:
     ID = 0
 
@@ -224,7 +225,6 @@ class SendFilePacket:
         print 'File Path:', file_path
         # parse file's contents to File().write() 1024 chunks if is not
         # directory
-        file_wrapper = None
         if not file_is_directory:
             chunk_size = min(SendFilePacket.CHUNK_SIZE, file_size)
             remaining = file_size
@@ -236,7 +236,7 @@ class SendFilePacket:
                 file_wrapper.write(chunk)
                 remaining -= chunk_size
                 chunk_size = min(chunk_size, remaining)
-            file_wrapper.flush()
+            file_wrapper.close()
             print 'Read the whole file, its in:', file_wrapper.get_path()
         else:
             file_wrapper = Directory()

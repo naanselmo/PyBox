@@ -8,11 +8,11 @@ import sys
 def main():
     '''Starts execution once everything is loaded'''
     hostname = sys.argv[1]
-    port = sys.argv[2]
+    port = int(sys.argv[2])
     username = sys.argv[3]
     directory = sys.argv[4]
 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
         client_socket.connect((hostname, port))
