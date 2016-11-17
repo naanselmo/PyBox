@@ -5,16 +5,16 @@ Pacotes
 -> login 
 	-> username
 	-> directoryName
-	-> filesInClient array(name, path, last modified)
-
--> fileChanged
-	-> file (name, path, last modified)
+	-> files array de com (path, is_directory, last modified)
 
 -> requestFile
-	-> file (name, path)
+	-> file (path)
 
 -> sendFile
-	-> file (name, path, content, last modified)
+	-> file (path, is_directory, content, last modified)
+
+-> logoutPacket
+    -> is_reply
 
 ---------
 Mensagens
@@ -51,11 +51,6 @@ Mensagens
 
 	-> Se logout packet: (3)
 	    -> 1 byte para especificar o boolean is_reply
-
-	-> Se fileChanged packet:
-		-> 1 byte para especificar o tamanho do path relativo do ficheiro (maximo de caracteres - 256)
-		-> 1 byte para especificar se é directory ou file
-		-> Path relativo do ficheiro
 
 -------------
 Funcionamento
