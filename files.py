@@ -166,6 +166,7 @@ class Directory(object):
         if os.path.exists(destination):
             if os.path.isdir(destination):
                 os.rmdir(self.get_path())
+                self.path = destination
                 return
             else:
                 os.remove(destination)
@@ -174,6 +175,7 @@ class Directory(object):
             os.makedirs(os.path.split(destination)[0])
         except Exception as _:
             pass
+
         shutil.move(self.get_path(), destination)
         self.path = destination
 
