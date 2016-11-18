@@ -1,4 +1,8 @@
 '''Handles client-server interaction from the client side'''
+# Grupo 14:
+# 81900 - Nuno Anselmo
+# 81936 - Liliana Oliveira
+# 82047 - Andre Mendes
 
 from object_socket import ObjectSocket
 from message_handler import MessageHandler

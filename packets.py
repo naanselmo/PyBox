@@ -1,3 +1,9 @@
+"""Defines all the objects to be supported and used by the Object Socket"""
+# Grupo 14:
+# 81900 - Nuno Anselmo
+# 81936 - Liliana Oliveira
+# 82047 - Andre Mendes
+
 import byte_utils
 from files import File, Directory
 import utils

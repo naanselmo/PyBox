@@ -1,3 +1,9 @@
+"""Handles generic byte utilities"""
+# Grupo 14:
+# 81900 - Nuno Anselmo
+# 81936 - Liliana Oliveira
+# 82047 - Andre Mendes
+
 def boolean_to_bytes(boolean):
     """
     Transforms a character into a byte array of 1 byte

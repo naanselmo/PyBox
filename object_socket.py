@@ -1,3 +1,9 @@
+"""Wrapper for sockets, automatically decoding and encoding specific objects"""
+# Grupo 14:
+# 81900 - Nuno Anselmo
+# 81936 - Liliana Oliveira
+# 82047 - Andre Mendes
+
 from packets import LoginPacket, RequestFilePacket, SendFilePacket, LogoutPacket
 from byte_utils import char_to_bytes, bytes_to_char
 import utils

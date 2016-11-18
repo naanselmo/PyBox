@@ -1,4 +1,8 @@
 """Wrapper for low-level OS calls regarding files and directories"""
+# Grupo 14:
+# 81900 - Nuno Anselmo
+# 81936 - Liliana Oliveira
+# 82047 - Andre Mendes
 
 import os
 import shutil

@@ -1,4 +1,8 @@
 """Handles all the core functions for PyBox"""
+# Grupo 14:
+# 81900 - Nuno Anselmo
+# 81936 - Liliana Oliveira
+# 82047 - Andre Mendes
 
 import os
 from files import Directory, get_wrapper
