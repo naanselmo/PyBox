@@ -139,14 +139,19 @@ class MessageHandler(object):
         def logout(logout_packet):
             """Receives a logout packet and terminates"""
             utils.log_message("INFO", "Received logout")
+
             if not logout_packet.is_reply:
                 logout_packet = packets.LogoutPacket(True, logout_packet.is_busy)
                 self.object_socket.send_object(logout_packet)
-            if not logout_packet.is_busy:
+
+            if logout_packet.is_busy:
+                utils.log_message("ERROR", "Another user is already synchronizing this directory...")
+            else:
                 directory_path = self.directory.get_path()
                 MessageHandler.locked_directories_lock.acquire()
                 MessageHandler.locked_directories.remove(directory_path)
                 MessageHandler.locked_directories_lock.release()
+
             return -1
 
         packet_actions = {
