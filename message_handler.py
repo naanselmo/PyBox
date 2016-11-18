@@ -27,7 +27,7 @@ class MessageHandler(object):
         utils.log_message("INFO", "Sending login")
         self.directory = Directory(directory)
         obj_list = []
-        for file_iterator in self.directory.list(True):
+        for file_iterator in self.directory.list(only_empty_directories=True):
             obj_list.append(packets.FileInfo(\
                 path=file_iterator.get_relpath(self.directory.get_path()),\
                 file_wrapper=file_iterator))
@@ -58,7 +58,7 @@ class MessageHandler(object):
             self.directory = Directory(login_packet.username + "-" + login_packet.directory_name)
 
             local_files = []
-            for file_iterator in self.directory.list(True):
+            for file_iterator in self.directory.list(only_empty_directories=True):
                 local_files.append(packets.FileInfo(\
                     path=file_iterator.get_relpath(self.directory.get_path()),\
                     file_wrapper=file_iterator))
@@ -116,6 +116,9 @@ class MessageHandler(object):
             utils.log_message("INFO", "Receiving object: " + info.path)
             info.file_wrapper.move(os.path.join(self.directory.get_path(), info.path))
             info.file_wrapper.set_timestamp(info.last_modified)
+            if utils.DEBUG_LEVEL >= 3:
+                utils.log_message("DEBUG", "Object has been moved to: " + str(info.file_wrapper.get_path()))
+                utils.log_message("DEBUG", "Timestamp has been set to: " + str(utils.format_timestamp(info.file_wrapper.get_timestamp())))
             return 0
 
         def logout(logout_packet):

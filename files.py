@@ -199,16 +199,17 @@ class Directory(object):
         """Sets the modified and accessed timestamp to the given one"""
         os.utime(self.get_path(), (timestamp, timestamp))
 
-    def list(self, recursive=False):
+    def list(self, recursive=True, only_empty_directories=False):
         """Generator for this directory, containing files and directories"""
         paths = os.listdir(self.get_path())
         for path in paths:
             abs_path = os.path.join(self.get_path(), path)
             if os.path.isdir(abs_path):
                 directory = Directory(abs_path)
-                yield directory
+                if not only_empty_directories or not os.listdir(directory.get_path()):
+                    yield directory
                 if recursive:
-                    for sub in directory.list(True):
+                    for sub in directory.list(recursive, only_empty_directories):
                         yield sub
             else:
                 yield File(abs_path)

@@ -232,7 +232,7 @@ class SendFilePacket:
             utils.log_message("DEBUG", "Decoded send file packet: ")
             utils.log_message("DEBUG", "File path length: " + str(file_path_length))
             utils.log_message("DEBUG", "Is directory: " + str(file_is_directory))
-            utils.log_message("DEBUG", "Last modified: " + str(file_last_modified))
+            utils.log_message("DEBUG", "Last modified: " + str(utils.format_timestamp(file_last_modified)))
             utils.log_message("DEBUG", "File size: " + str(file_size))
             utils.log_message("DEBUG", "File Path: " + str(file_path))
         # parse file's contents to File().write() 1024 chunks if is not directory
