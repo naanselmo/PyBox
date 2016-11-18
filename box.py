@@ -11,7 +11,7 @@ def main():
     hostname = sys.argv[1]
     port = int(sys.argv[2])
     username = sys.argv[3]
-    directory = sys.argv[4]
+    directory = sys.argv[4].rstrip('/')
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
