@@ -12,6 +12,9 @@ import utils
 
 class MessageHandler(object):
     """Handles all the core functions for PyBox"""
+    # Do not allow simultaneous access to locked directories
+    locked_directories = []
+    locked_directories_lock = threading.Lock()
 
     def __init__(self, object_socket, thread=False):
         super(MessageHandler, self).__init__()
@@ -57,6 +60,18 @@ class MessageHandler(object):
             utils.log_message("INFO", "Receiving login")
             self.directory = Directory(login_packet.username + "-" + login_packet.directory_name)
 
+            # If directory is already being synchronized, disconnect
+            directory_path = self.directory.get_path()
+            MessageHandler.locked_directories_lock.acquire()
+            if directory_path in MessageHandler.locked_directories:
+                MessageHandler.locked_directories_lock.release()
+                logout_packet = packets.LogoutPacket(False, True)
+                self.object_socket.send_object(logout_packet)
+                return 0
+            else:
+                MessageHandler.locked_directories.append(directory_path)
+            MessageHandler.locked_directories_lock.release()
+
             local_files = []
             for file_iterator in self.directory.list(directories_after_files=True):
                 local_files.append(packets.FileInfo(\
@@ -95,7 +110,7 @@ class MessageHandler(object):
             for send in send_files:
                 send_object(send)
 
-            logout_packet = packets.LogoutPacket(False)
+            logout_packet = packets.LogoutPacket(False, False)
             self.object_socket.send_object(logout_packet)
             return 0
 
@@ -125,8 +140,13 @@ class MessageHandler(object):
             """Receives a logout packet and terminates"""
             utils.log_message("INFO", "Received logout")
             if not logout_packet.is_reply:
-                logout_packet = packets.LogoutPacket(True)
+                logout_packet = packets.LogoutPacket(True, logout_packet.is_busy)
                 self.object_socket.send_object(logout_packet)
+            if not logout_packet.is_busy:
+                directory_path = self.directory.get_path()
+                MessageHandler.locked_directories_lock.acquire()
+                MessageHandler.locked_directories.remove(directory_path)
+                MessageHandler.locked_directories_lock.release()
             return -1
 
         packet_actions = {
