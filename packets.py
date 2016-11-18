@@ -9,6 +9,7 @@ from files import File, Directory
 import utils
 from socket import MSG_WAITALL
 
+
 class FileInfo:
     def __init__(self, path, is_directory=None, last_modified=None, size=None, file_wrapper=None):
         """
@@ -252,7 +253,8 @@ class SendFilePacket:
                 chunk_size = min(chunk_size, remaining)
             file_wrapper.close()
             if utils.DEBUG_LEVEL >= 1:
-                utils.log_message("DEBUG", "File size is " + str(file_size) + " and received bytes are " + str(received_bytes_acc))
+                utils.log_message("DEBUG", "File size is " + str(file_size) + " and received bytes are " + str(
+                    received_bytes_acc))
                 utils.log_message("DEBUG", "File is located in " + str(file_wrapper.get_path()))
         else:
             file_wrapper = Directory()
@@ -264,29 +266,35 @@ class SendFilePacket:
 class LogoutPacket:
     ID = 4
 
-    def __init__(self, is_reply=False):
+    def __init__(self, is_reply=False, is_busy=False):
         """
         Creates a logout packet.
         @param is_reply: The boolean specifying if it is a reply.
         @type is_reply: boolean
+        @param is_busy: The boolean specifying if it was busy
+        @type is_busy: boolean
         """
         self.is_reply = is_reply
+        self.is_busy = is_busy
 
     def send(self, socket):
         body = bytearray()
         body.extend(byte_utils.boolean_to_bytes(self.is_reply))
+        body.extend(byte_utils.boolean_to_bytes(self.is_busy))
         socket.sendall(body)
 
     @staticmethod
     def decode(socket):
         if utils.DEBUG_LEVEL >= 3:
             utils.log_message("DEBUG", "Decode logout packet")
-        fixed = bytearray(1)
+        fixed = bytearray(2)
         socket.recv_into(fixed, flags=MSG_WAITALL)
         is_reply = byte_utils.bytes_to_boolean(fixed, 0)
+        is_busy = byte_utils.bytes_to_boolean(fixed, 1)
         if utils.DEBUG_LEVEL >= 3:
             utils.log_message("DEBUG", "Is reply: " + str(is_reply))
-        return LogoutPacket(is_reply)
+            utils.log_message("DEBUG", "Is busy: " + str(is_busy))
+        return LogoutPacket(is_reply, is_busy)
 
 # class FileChangedPacket:
 #     ID = 100
