@@ -27,7 +27,7 @@ class MessageHandler(object):
         utils.log_message("INFO", "Sending login")
         self.directory = Directory(directory)
         obj_list = []
-        for file_iterator in self.directory.list(only_empty_directories=True):
+        for file_iterator in self.directory.list(directories_after_files=True):
             obj_list.append(packets.FileInfo(\
                 path=file_iterator.get_relpath(self.directory.get_path()),\
                 file_wrapper=file_iterator))
@@ -58,7 +58,7 @@ class MessageHandler(object):
             self.directory = Directory(login_packet.username + "-" + login_packet.directory_name)
 
             local_files = []
-            for file_iterator in self.directory.list(only_empty_directories=True):
+            for file_iterator in self.directory.list(directories_after_files=True):
                 local_files.append(packets.FileInfo(\
                     path=file_iterator.get_relpath(self.directory.get_path()),\
                     file_wrapper=file_iterator))
