@@ -15,3 +15,6 @@ def log_message(code, message):
 def format_timestamp(timestamp):
     """Formats a timestamp"""
     return time.strftime("%H:%M:%S", time.localtime(timestamp))
+
+def get_timestamp():
+    return time.time()
