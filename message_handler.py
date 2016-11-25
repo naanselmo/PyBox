@@ -85,11 +85,11 @@ class MessageHandler(object):
                 for remote in login_packet.files:
                     if remote == local:
                         found_match = True
-                        if local > remote and (local.get_timestamp() >= int(utils.get_timestamp() - 60)):
+                        if local > remote and (isinstance(local, Directory) or (local.get_timestamp() >= int(utils.get_timestamp() - 60))):
                             send_files.append(local)
                         break
 
-                if not found_match and (local.get_timestamp() >= int(utils.get_timestamp() - 60)):
+                if not found_match and (isinstance(local, Directory) or (local.get_timestamp() >= int(utils.get_timestamp() - 60))):
                     send_files.append(local)
 
             for remote in login_packet.files:
@@ -97,11 +97,11 @@ class MessageHandler(object):
                 for local in local_files:
                     if local == remote:
                         found_match = True
-                        if remote > local and (remote.get_timestamp() >= int(utils.get_timestamp() - 60)):
+                        if remote > local and (isinstance(remote, Directory) or (remote.get_timestamp() >= int(utils.get_timestamp() - 60))):
                             request_files.append(remote)
                         break
 
-                if not found_match and (remote.get_timestamp() >= int(utils.get_timestamp() - 60)):
+                if not found_match and (isinstance(remote, Directory) or (remote.get_timestamp() >= int(utils.get_timestamp() - 60))):
                     request_files.append(remote)
 
             for request in request_files:
